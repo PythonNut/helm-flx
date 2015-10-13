@@ -131,6 +131,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
 
 ;;;###autoload
 (define-minor-mode helm-flx-mode
+  "helm-flx minor mode"
   :init-value nil
   :group 'helm-flx
   :global t
