@@ -24,11 +24,24 @@
 ;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This package implements intelligent helm fuzzy sorting, provided by flx.
+
+;; You can install the package by either cloning it yourself, or by doing M-x package-install RET helm-flx RET.
+
+;; After that, you can enable it by putting the following in your init file:
+
+;;     ;; For best results, load this before you load helm.
+;;     (helm-flx-mode +1)
+
+;; See the README for more info.
+
 ;;; Code:
 
 (eval-when-compile
   (with-demoted-errors "Byte-compile: %s"
-    (require 'helm)))
+    (require 'helm)
+    (require 'flx)))
 
 (defgroup helm-flx nil
   "Sort helm candidates by flx score"
