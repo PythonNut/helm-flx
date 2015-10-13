@@ -95,14 +95,14 @@ candidates is greater than this number, only sort the first N (presorted by leng
                                           (< (length (funcall scored-string-fn
                                                               c1))
                                              (length (funcall scored-string-fn
-                                                              c2)))))
-                                  (end (min helm-flx-limit
-                                            num-cands))
-                                  (result nil))
-                             (while (and seq
-                                         (>= (setq end (1- end)) 0))
-                               (push (pop seq) result))
-                             result))))
+                                                              c2))))))
+                             (end (min helm-flx-limit
+                                       num-cands))
+                             (result nil))
+                         (while (and seq
+                                     (>= (setq end (1- end)) 0))
+                           (push (pop seq) result))
+                         result)))
                     (lambda (c1 c2)
                       (> (cdr c1)
                          (cdr c2))))))))
@@ -131,6 +131,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
 
 ;;;###autoload
 (define-minor-mode helm-flx-mode
+  "helm-flx minor mode"
   :init-value nil
   :group 'helm-flx
   :global t
