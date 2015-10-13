@@ -41,10 +41,15 @@
   "The maximum number of helm candidates (N) to sort. If the number of
 candidates is greater than this number, only sort the first N (presorted by length). Set to nil to sort all candidates.")
 
+(defvar helm-flx-old-helm-fuzzy-sort-fn nil
+  "Stores the old value of helm-fuzzy-sort-fn")
+(defvar helm-flx-old-helm-fuzzy-matching-highlight-fn nil
+  "Stored the old value of helm-fuzzy-matching-highlight-fn")
+
 (with-eval-after-load 'flx
   (setq helm-flx-cache (flx-make-string-cache #'flx-get-heatmap-file)))
 
-(defun my/helm-fuzzy-matching-sort-fn (candidates _source &optional use-real)
+(defun helm-flx-fuzzy-matching-sort (candidates _source &optional use-real)
   (require 'flx)
   (if (string= helm-pattern "")
       candidates
@@ -111,5 +116,25 @@ candidates is greater than this number, only sort the first N (presorted by leng
       (setq display (buffer-string)))
     (if real (cons display real) display)))
 
+;;;###autoload
+(define-minor-mode helm-flx-mode
+  :init-value nil
+  :group 'helm-flx
+  :global t
+  (if helm-flx-mode
+      (progn (setq helm-flx-old-helm-fuzzy-sort-fn
+                   (bound-and-true-p helm-fuzzy-sort-fn))
+             (setq helm-flx-old-helm-fuzzy-matching-highlight-fn
+                   (bound-and-true-p helm-fuzzy-matching-highlight-fn))
+             (setq helm-fuzzy-sort-fn
+                   #'helm-flx-fuzzy-matching-sort)
+             (setq helm-fuzzy-matching-highlight-fn
+                   #'helm-flx-fuzzy-highlight-match))
+    (setq helm-fuzzy-sort-fn
+          helm-flx-old-helm-fuzzy-sort-fn)
+    (setq helm-fuzzy-matching-highlight-fn
+          helm-flx-old-helm-fuzzy-matching-highlight-fn)))
+
 (provide 'helm-flx)
+
 ;;; helm-flx.el ends here
