@@ -35,31 +35,59 @@
   :group 'convenience
   :prefix "helm-flx-")
 
-(defvar helm-flx-cache nil)
+(defvar helm-flx-cache nil
+  "Stores the current flx cache for helm-flx.")
+(defvar helm-flx-limit 5000
+  "The maximum number of helm candidates (N) to sort. If the number of
+candidates is greater than this number, only sort the first N (presorted by length). Set to nil to sort all candidates.")
 
 (with-eval-after-load 'flx
   (setq helm-flx-cache (flx-make-string-cache #'flx-get-heatmap-file)))
 
-(defun helm-flx-fuzzy-matching-sort-fn (candidates _source &optional use-real)
+(defun my/helm-fuzzy-matching-sort-fn (candidates _source &optional use-real)
   (require 'flx)
   (if (string= helm-pattern "")
       candidates
-    (mapcar #'car
-            (sort (mapcar
-                   (lambda (cand)
-                     (cons cand (or
-                                 (car (flx-score
-                                       (if (consp cand)
-                                           (if use-real
-                                               (cdr cand)
-                                             (car cand))
-                                         cand)
-                                       helm-pattern helm-flx-cache))
+    (let ((num-cands (length candidates))
+
+          ;; no need to branch on use-real for every candidate
+          (scored-string-fn (if use-real
+                                (lambda (cand)
+                                  (if (consp cand)
+                                      (cdr cand)
+                                    cand))
+                              (lambda (cand)
+                                (if (consp cand)
+                                    (car cand)
+                                  cand)))))
+      (mapcar #'car
+              (sort (mapcar
+                     (lambda (cand)
+                       (cons cand
+                             (or (car (flx-score (funcall scored-string-fn
+                                                          cand)
+                                                 helm-pattern
+                                                 helm-flx-cache))
                                  0)))
-                   candidates)
-                  (lambda (s1 s2)
-                    (> (cdr s1)
-                       (cdr s2)))))))
+                     (if (or (not helm-flx-limit)
+                             (< num-cands helm-flx-limit))
+                         candidates
+                       (let ((seq (sort candidates
+                                        (lambda (c1 c2)
+                                          (< (length (funcall scored-string-fn
+                                                              c1))
+                                             (length (funcall scored-string-fn
+                                                              c2)))))
+                                  (end (min helm-flx-limit
+                                            num-cands))
+                                  (result nil))
+                             (while (and seq
+                                         (>= (setq end (1- end)) 0))
+                               (push (pop seq) result))
+                             result))))
+                    (lambda (c1 c2)
+                      (> (cdr c1)
+                         (cdr c2))))))))
 
 (defun helm-flx-fuzzy-highlight-match (candidate)
   (require 'flx)
