@@ -137,6 +137,6 @@ candidates is greater than this number, only sort the first N (presorted by leng
           (or helm-flx-old-helm-fuzzy-matching-highlight-fn
               #'helm-fuzzy-default-highlight-match))))
 
-  (provide 'helm-flx)
+(provide 'helm-flx)
 
 ;;; helm-flx.el ends here
