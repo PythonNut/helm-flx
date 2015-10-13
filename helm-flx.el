@@ -131,10 +131,12 @@ candidates is greater than this number, only sort the first N (presorted by leng
              (setq helm-fuzzy-matching-highlight-fn
                    #'helm-flx-fuzzy-highlight-match))
     (setq helm-fuzzy-sort-fn
-          helm-flx-old-helm-fuzzy-sort-fn)
+          (or helm-flx-old-helm-fuzzy-sort-fn
+              #'helm-fuzzy-matching-default-sort-fn))
     (setq helm-fuzzy-matching-highlight-fn
-          helm-flx-old-helm-fuzzy-matching-highlight-fn)))
+          (or helm-flx-old-helm-fuzzy-matching-highlight-fn
+              #'helm-fuzzy-default-highlight-match))))
 
-(provide 'helm-flx)
+  (provide 'helm-flx)
 
 ;;; helm-flx.el ends here
