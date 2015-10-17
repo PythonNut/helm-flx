@@ -48,11 +48,14 @@
   :group 'convenience
   :prefix "helm-flx-")
 
+(defcustom helm-flx-limit 5000
+  "The maximum number of helm candidates (N) to sort. If the number of
+candidates is greater than this number, only sort the first N (presorted by length). Set to nil to sort all candidates."
+  :type 'number
+  :group 'flx-isearch)
+
 (defvar helm-flx-cache nil
   "Stores the current flx cache for helm-flx.")
-(defvar helm-flx-limit 5000
-  "The maximum number of helm candidates (N) to sort. If the number of
-candidates is greater than this number, only sort the first N (presorted by length). Set to nil to sort all candidates.")
 
 (defvar helm-flx-old-helm-fuzzy-sort-fn nil
   "Stores the old value of helm-fuzzy-sort-fn")
