@@ -6,7 +6,7 @@
 ;; Keywords: convenience, helm, fuzzy, flx
 ;; Version: 20151013
 ;; URL: https://github.com/PythonNut/helm-flx
-;; Package-Requires: ((emacs "24") (helm "1.7.9") (flx "0.5"))
+;; Package-Requires: ((emacs "24.4") (helm "1.7.9") (flx "0.5"))
 
 ;;; License:
 
@@ -65,14 +65,50 @@ candidates is greater than this number, only sort the first N (presorted by leng
 (with-eval-after-load 'flx
   (setq helm-flx-cache (flx-make-filename-cache)))
 
+(defun helm-flx-sort (candidates scored-string-fn)
+  (let ((num-cands (length candidates)))
+    (mapcar #'car
+            (sort (mapcar
+                   (lambda (cand)
+                     (cons cand
+                           (or (car (flx-score (funcall scored-string-fn
+                                                        cand)
+                                               helm-pattern
+                                               helm-flx-cache))
+                               most-negative-fixnum)))
+                   (if (or (not helm-flx-limit)
+                           (> helm-flx-limit helm-candidate-number-limit)
+                           (< num-cands helm-flx-limit))
+                       candidates
+                     (let ((seq (sort candidates
+                                      (lambda (c1 c2)
+                                        (< (length (funcall scored-string-fn
+                                                            c1))
+                                           (length (funcall scored-string-fn
+                                                            c2))))))
+                           (end (min helm-flx-limit
+                                     num-cands))
+                           (result nil))
+                       (while (and seq
+                                   (>= (setq end (1- end)) 0))
+                         (push (pop seq) result))
+                       result)))
+                  (lambda (c1 c2)
+                    (> (cdr c1)
+                       (cdr c2)))))))
+
+(defun helm-flx-helm-ff-sort-candidates (candidates _source)
+  "Sort function for `helm-source-find-files'.
+Return candidates prefixed with basename of `helm-input' first."
+  (if (string= helm-input "")
+      candidates
+    (helm-flx-sort candidates #'car)))
+
 (defun helm-flx-fuzzy-matching-sort (candidates _source &optional use-real)
   (require 'flx)
   (if (string= helm-pattern "")
       candidates
-    (let ((num-cands (length candidates))
-
-          ;; no need to branch on use-real for every candidate
-          (scored-string-fn (if use-real
+    (helm-flx-sort candidates (if use-real
                                 (lambda (cand)
                                   (if (consp cand)
                                       (cdr cand)
@@ -80,36 +116,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
                               (lambda (cand)
                                 (if (consp cand)
                                     (car cand)
-                                  cand)))))
-      (mapcar #'car
-              (sort (mapcar
-                     (lambda (cand)
-                       (cons cand
-                             (or (car (flx-score (funcall scored-string-fn
-                                                          cand)
-                                                 helm-pattern
-                                                 helm-flx-cache))
-                                 most-negative-fixnum)))
-                     (if (or (not helm-flx-limit)
-                             (> helm-flx-limit helm-candidate-number-limit)
-                             (< num-cands helm-flx-limit))
-                         candidates
-                       (let ((seq (sort candidates
-                                        (lambda (c1 c2)
-                                          (< (length (funcall scored-string-fn
-                                                              c1))
-                                             (length (funcall scored-string-fn
-                                                              c2))))))
-                             (end (min helm-flx-limit
-                                       num-cands))
-                             (result nil))
-                         (while (and seq
-                                     (>= (setq end (1- end)) 0))
-                           (push (pop seq) result))
-                         result)))
-                    (lambda (c1 c2)
-                      (> (cdr c1)
-                         (cdr c2))))))))
+                                  cand))))))
 
 (defun helm-flx-candidate-string (candidate)
   (cond
@@ -153,13 +160,18 @@ candidates is greater than this number, only sort the first N (presorted by leng
              (setq helm-fuzzy-sort-fn
                    #'helm-flx-fuzzy-matching-sort)
              (setq helm-fuzzy-matching-highlight-fn
-                   #'helm-flx-fuzzy-highlight-match))
+                   #'helm-flx-fuzzy-highlight-match)
+             (advice-add 'helm-ff-sort-candidates :override
+                         #'helm-flx-helm-ff-sort-candidates))
+
     (setq helm-fuzzy-sort-fn
           (or helm-flx-old-helm-fuzzy-sort-fn
               #'helm-fuzzy-matching-default-sort-fn))
     (setq helm-fuzzy-matching-highlight-fn
           (or helm-flx-old-helm-fuzzy-matching-highlight-fn
-              #'helm-fuzzy-default-highlight-match))))
+              #'helm-fuzzy-default-highlight-match))
+    (advice-remove 'helm-ff-sort-candidates
+                   #'helm-flx-helm-ff-sort-candidates)))
 
 (provide 'helm-flx)
 
