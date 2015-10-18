@@ -111,9 +111,15 @@ candidates is greater than this number, only sort the first N (presorted by leng
                       (> (cdr c1)
                          (cdr c2))))))))
 
+(defun helm-flx-candidate-string (candidate)
+  (cond
+   ((symbolp candidate) (symbol-name candidate))
+   (t candidate)))
+
 (defun helm-flx-fuzzy-highlight-match (candidate)
   (require 'flx)
-  (let* ((pair (and (consp candidate) candidate))
+  (let* ((candidate (helm-flx-candidate-string candidate))
+         (pair (and (consp candidate) candidate))
          (display (if pair (car pair) candidate))
          (real (cdr pair)))
     (with-temp-buffer
