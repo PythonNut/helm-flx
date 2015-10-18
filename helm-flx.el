@@ -63,7 +63,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
   "Stored the old value of helm-fuzzy-matching-highlight-fn")
 
 (with-eval-after-load 'flx
-  (setq helm-flx-cache (flx-make-string-cache #'flx-get-heatmap-file)))
+  (setq helm-flx-cache (flx-make-filename-cache)))
 
 (defun helm-flx-fuzzy-matching-sort (candidates _source &optional use-real)
   (require 'flx)
