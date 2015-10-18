@@ -89,7 +89,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
                                                           cand)
                                                  helm-pattern
                                                  helm-flx-cache))
-                                 0)))
+                                 most-negative-fixnum)))
                      (if (or (not helm-flx-limit)
                              (> helm-flx-limit helm-candidate-number-limit)
                              (< num-cands helm-flx-limit))
