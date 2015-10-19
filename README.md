@@ -1,5 +1,7 @@
 # helm-flx
 
+[![MELPA](http://melpa.org/packages/helm-flx-badge.svg)](http://melpa.org/#/helm-flx)
+
 This package implements intelligent helm fuzzy sorting, provided by [`flx`](https://github.com/lewang/flx).
 
 You can install the package by either cloning it yourself, or by doing <kbd>M-x</kbd> `package-install` <kbd>RET</kbd> `helm-flx` <kbd>RET</kbd>.
