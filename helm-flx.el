@@ -142,9 +142,9 @@ Return candidates prefixed with basename of `helm-input' first."
         (dolist (index (cdr (flx-score
                              (substring-no-properties display)
                              helm-pattern helm-flx-cache)))
-          (with-demoted-errors
-              (add-text-properties
-               (1+ index) (+ 2 index) '(face helm-match)))))
+          (with-demoted-errors "helm-fx error: %s"
+            (add-text-properties
+             (1+ index) (+ 2 index) '(face helm-match)))))
       (setq display (buffer-string)))
     (if real (cons display real) display)))
 
