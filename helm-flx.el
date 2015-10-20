@@ -82,19 +82,18 @@ candidates is greater than this number, only sort the first N (presorted by leng
                            (> helm-flx-limit helm-candidate-number-limit)
                            (< num-cands helm-flx-limit))
                        candidates
-                     (let ((seq (sort candidates
-                                      (lambda (c1 c2)
-                                        (< (length (funcall display-string-fn
-                                                            c1))
-                                           (length (funcall display-string-fn
-                                                            c2))))))
-                           (end (min helm-flx-limit
-                                     num-cands))
-                           (result nil))
-                       (while (and seq
-                                   (>= (setq end (1- end)) 0))
-                         (push (pop seq) result))
-                       result)))
+                     (let* ((seq (sort candidates
+                                       (lambda (c1 c2)
+                                         (< (length (funcall display-string-fn
+                                                             c1))
+                                            (length (funcall display-string-fn
+                                                             c2))))))
+                            (end (min helm-flx-limit
+                                      num-cands
+                                      (length seq)))
+                            (result nil))
+                       (dotimes (_ end result)
+                         (push (pop seq) result)))))
                   (lambda (c1 c2)
                     (> (cdr c1)
                        (cdr c2)))))))
