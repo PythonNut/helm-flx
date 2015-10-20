@@ -65,26 +65,28 @@ candidates is greater than this number, only sort the first N (presorted by leng
 (with-eval-after-load 'flx
   (setq helm-flx-cache (flx-make-filename-cache)))
 
-(defun helm-flx-sort (candidates pattern scored-string-fn)
+(defun helm-flx-sort (candidates pattern display-string-fn &optional score-fn)
   (let ((num-cands (length candidates)))
     (mapcar #'car
             (sort (mapcar
-                   (lambda (cand)
-                     (cons cand
-                           (or (car (flx-score (funcall scored-string-fn
-                                                        cand)
-                                               pattern
-                                               helm-flx-cache))
-                               most-negative-fixnum)))
+                   (or (and score-fn
+                            (funcall score-fn pattern))
+                       (lambda (cand)
+                         (cons cand
+                               (or (car (flx-score (funcall display-string-fn
+                                                            cand)
+                                                   pattern
+                                                   helm-flx-cache))
+                                   most-negative-fixnum))))
                    (if (or (not helm-flx-limit)
                            (> helm-flx-limit helm-candidate-number-limit)
                            (< num-cands helm-flx-limit))
                        candidates
                      (let ((seq (sort candidates
                                       (lambda (c1 c2)
-                                        (< (length (funcall scored-string-fn
+                                        (< (length (funcall display-string-fn
                                                             c1))
-                                           (length (funcall scored-string-fn
+                                           (length (funcall display-string-fn
                                                             c2))))))
                            (end (min helm-flx-limit
                                      num-cands))
@@ -102,7 +104,16 @@ candidates is greater than this number, only sort the first N (presorted by leng
 Return candidates prefixed with basename of `helm-input' first."
   (if (string= helm-input "")
       candidates
-    (helm-flx-sort candidates helm-input #'car)))
+    (helm-flx-sort candidates helm-input #'cdr
+                   (lambda (pattern)
+                     (lambda (cand)
+                       (cons cand
+                             (if (string-match-p "^\\[\\?\\]" (cdr cand))
+                                 most-positive-fixnum
+                               (or (car (flx-score (cdr cand)
+                                                   pattern
+                                                   helm-flx-cache))
+                                   most-negative-fixnum))))))))
 
 (defun helm-flx-fuzzy-matching-sort (candidates _source &optional use-real)
   (require 'flx)
