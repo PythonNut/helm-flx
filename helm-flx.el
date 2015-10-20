@@ -65,7 +65,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
 (with-eval-after-load 'flx
   (setq helm-flx-cache (flx-make-filename-cache)))
 
-(defun helm-flx-sort (candidates scored-string-fn)
+(defun helm-flx-sort (candidates pattern scored-string-fn)
   (let ((num-cands (length candidates)))
     (mapcar #'car
             (sort (mapcar
@@ -73,7 +73,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
                      (cons cand
                            (or (car (flx-score (funcall scored-string-fn
                                                         cand)
-                                               helm-pattern
+                                               pattern
                                                helm-flx-cache))
                                most-negative-fixnum)))
                    (if (or (not helm-flx-limit)
@@ -102,21 +102,23 @@ candidates is greater than this number, only sort the first N (presorted by leng
 Return candidates prefixed with basename of `helm-input' first."
   (if (string= helm-input "")
       candidates
-    (helm-flx-sort candidates #'car)))
+    (helm-flx-sort candidates helm-input #'car)))
 
 (defun helm-flx-fuzzy-matching-sort (candidates _source &optional use-real)
   (require 'flx)
   (if (string= helm-pattern "")
       candidates
-    (helm-flx-sort candidates (if use-real
-                                (lambda (cand)
-                                  (if (consp cand)
-                                      (cdr cand)
-                                    cand))
-                              (lambda (cand)
-                                (if (consp cand)
-                                    (car cand)
-                                  cand))))))
+    (helm-flx-sort candidates
+                   helm-pattern
+                   (if use-real
+                       (lambda (cand)
+                         (if (consp cand)
+                             (cdr cand)
+                           cand))
+                     (lambda (cand)
+                       (if (consp cand)
+                           (car cand)
+                         cand))))))
 
 (defun helm-flx-candidate-string (candidate)
   (cond
