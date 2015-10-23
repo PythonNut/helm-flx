@@ -66,6 +66,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
   (setq helm-flx-cache (flx-make-filename-cache)))
 
 (defun helm-flx-sort (candidates pattern display-string-fn &optional score-fn)
+  (require 'flx)
   (let ((num-cands (length candidates)))
     (mapcar #'car
             (sort (mapcar
@@ -101,6 +102,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
 (defun helm-flx-helm-ff-sort-candidates (candidates _source)
   "Sort function for `helm-source-find-files'.
 Return candidates prefixed with basename of `helm-input' first."
+  (require 'flx)
   (if (string= helm-input "")
       candidates
     (helm-flx-sort candidates helm-input #'cdr
@@ -115,7 +117,6 @@ Return candidates prefixed with basename of `helm-input' first."
                                    most-negative-fixnum))))))))
 
 (defun helm-flx-fuzzy-matching-sort (candidates _source &optional use-real)
-  (require 'flx)
   (if (string= helm-pattern "")
       candidates
     (helm-flx-sort candidates
