@@ -52,7 +52,7 @@
   "The maximum number of helm candidates (N) to sort. If the number of
 candidates is greater than this number, only sort the first N (presorted by length). Set to nil to sort all candidates."
   :type 'number
-  :group 'flx-isearch)
+  :group 'helm-flx)
 
 (defvar helm-flx-cache nil
   "Stores the current flx cache for helm-flx.")
