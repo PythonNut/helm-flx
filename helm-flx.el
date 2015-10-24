@@ -105,13 +105,19 @@ Return candidates prefixed with basename of `helm-input' first."
   (require 'flx)
   (if (string= helm-input "")
       candidates
-    (helm-flx-sort candidates helm-input #'cdr
+    (helm-flx-sort candidates helm-input
+                   (lambda (cand)
+                     (substring-no-properties (cdr cand)))
                    (lambda (pattern)
                      (lambda (cand)
+                       (setq cand (substring-no-properties
+                                   (if (consp cand)
+                                       (cdr cand)
+                                     cand)))
                        (cons cand
-                             (if (string-match-p "^\\[\\?\\]" (cdr cand))
+                             (if (string-match-p "^\\[\\?\\]" cand)
                                  most-positive-fixnum
-                               (or (car (flx-score (cdr cand)
+                               (or (car (flx-score cand
                                                    pattern
                                                    helm-flx-cache))
                                    most-negative-fixnum))))))))
