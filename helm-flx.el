@@ -71,7 +71,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
     (mapcar #'car
             (sort (mapcar
                    (or (and score-fn
-                            (funcall score-fn pattern))
+                            (funcall score-fn pattern display-string-fn))
                        (lambda (cand)
                          (cons cand
                                (or (car (flx-score (funcall display-string-fn
@@ -107,19 +107,21 @@ Return candidates prefixed with basename of `helm-input' first."
       candidates
     (helm-flx-sort candidates helm-input
                    (lambda (cand)
-                     (substring-no-properties (cdr cand)))
-                   (lambda (pattern)
+                     (substring-no-properties
+                      (if (consp cand)
+                          (cdr cand)
+                        cand)))
+                   (lambda (pattern display-string-fn)
                      (lambda (cand)
-                       (setq cand (substring-no-properties
-                                   (if (consp cand)
-                                       (cdr cand)
-                                     cand)))
                        (cons cand
-                             (if (string-match-p "^\\[\\?\\]" cand)
+                             (if (string-match-p
+                                  "^\\[\\?\\]"
+                                  (funcall display-string-fn cand))
                                  most-positive-fixnum
-                               (or (car (flx-score cand
-                                                   pattern
-                                                   helm-flx-cache))
+                               (or (car (flx-score
+                                         (funcall display-string-fn cand)
+                                         pattern
+                                         helm-flx-cache))
                                    most-negative-fixnum))))))))
 
 (defun helm-flx-fuzzy-matching-sort (candidates _source &optional use-real)
