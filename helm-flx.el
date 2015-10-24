@@ -54,6 +54,11 @@ candidates is greater than this number, only sort the first N (presorted by leng
   :type 'number
   :group 'helm-flx)
 
+(defcustom helm-flx-for-helm-find-files t
+  "Master toggle for helm-find-files support"
+  :type 'boolean
+  :group 'helm-flx)
+
 (defvar helm-flx-cache nil
   "Stores the current flx cache for helm-flx.")
 
@@ -182,8 +187,9 @@ Return candidates prefixed with basename of `helm-input' first."
                    #'helm-flx-fuzzy-matching-sort)
              (setq helm-fuzzy-matching-highlight-fn
                    #'helm-flx-fuzzy-highlight-match)
-             (advice-add 'helm-ff-sort-candidates :override
-                         #'helm-flx-helm-ff-sort-candidates))
+             (when helm-flx-for-helm-find-files
+               (advice-add 'helm-ff-sort-candidates :override
+                           #'helm-flx-helm-ff-sort-candidates)))
 
     (setq helm-fuzzy-sort-fn
           (or helm-flx-old-helm-fuzzy-sort-fn
@@ -191,8 +197,9 @@ Return candidates prefixed with basename of `helm-input' first."
     (setq helm-fuzzy-matching-highlight-fn
           (or helm-flx-old-helm-fuzzy-matching-highlight-fn
               #'helm-fuzzy-default-highlight-match))
-    (advice-remove 'helm-ff-sort-candidates
-                   #'helm-flx-helm-ff-sort-candidates)))
+    (when helm-flx-for-helm-find-files
+      (advice-remove 'helm-ff-sort-candidates
+                     #'helm-flx-helm-ff-sort-candidates))))
 
 (provide 'helm-flx)
 
