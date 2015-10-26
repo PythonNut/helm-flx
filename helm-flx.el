@@ -156,7 +156,7 @@ Return candidates prefixed with basename of `helm-input' first."
          (display (if pair (car pair) candidate))
          (real (cdr pair)))
     (with-temp-buffer
-      (insert display)
+      (insert (propertize display 'read-only nil))
       (goto-char (point-min))
       (if (string-match-p " " helm-pattern)
           (dolist (p (split-string helm-pattern))
