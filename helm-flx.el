@@ -31,7 +31,6 @@
 
 ;; After that, you can enable it by putting the following in your init file:
 
-;;     ;; For best results, load this before you load helm.
 ;;     (helm-flx-mode +1)
 
 ;; See the README for more info.

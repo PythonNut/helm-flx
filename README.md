@@ -9,7 +9,6 @@ You can install the package by either cloning it yourself, or by doing <kbd>M-x<
 After that, you can enable it by putting the following in your init file:
 
 ```emacs
-;; For best results, load this before you load helm.
 (helm-flx-mode +1)
 ```
 
