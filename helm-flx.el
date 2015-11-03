@@ -150,26 +150,23 @@ Return candidates prefixed with basename of `helm-input' first."
 
 (defun helm-flx-fuzzy-highlight-match (candidate)
   (require 'flx)
-  (let* ((candidate (helm-flx-candidate-string candidate))
-         (pair (and (consp candidate) candidate))
-         (display (if pair (car pair) candidate))
-         (real (cdr pair)))
-    (with-temp-buffer
-      (insert (propertize display 'read-only nil))
-      (goto-char (point-min))
-      (if (string-match-p " " helm-pattern)
-          (dolist (p (split-string helm-pattern))
-            (when (search-forward p nil t)
-              (add-text-properties
-               (match-beginning 0) (match-end 0) '(face helm-match))))
+  (if (string-match-p " " helm-pattern)
+      (helm-fuzzy-default-highlight-match candidate)
+    (let* ((candidate (helm-flx-candidate-string candidate))
+           (pair (and (consp candidate) candidate))
+           (display (if pair (car pair) candidate))
+           (real (cdr pair)))
+      (with-temp-buffer
+        (insert (propertize display 'read-only nil))
+        (goto-char (point-min))
         (dolist (index (cdr (flx-score
                              (substring-no-properties display)
                              helm-pattern helm-flx-cache)))
           (with-demoted-errors "helm-fx error: %s"
             (add-text-properties
-             (1+ index) (+ 2 index) '(face helm-match)))))
-      (setq display (buffer-string)))
-    (if real (cons display real) display)))
+             (1+ index) (+ 2 index) '(face helm-match))))
+        (setq display (buffer-string)))
+      (if real (cons display real) display))))
 
 ;;;###autoload
 (define-minor-mode helm-flx-mode
