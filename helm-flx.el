@@ -148,6 +148,18 @@ Return candidates prefixed with basename of `helm-input' first."
    ((symbolp candidate) (symbol-name candidate))
    (t candidate)))
 
+(defun helm-flx-fuzzy-highligher (display pattern)
+  (with-temp-buffer
+    (insert (propertize display 'read-only nil))
+    (goto-char (point-min))
+    (dolist (index (cdr (flx-score
+                         (substring-no-properties display)
+                         pattern helm-flx-cache)))
+      (with-demoted-errors "helm-fx error: %s"
+        (add-text-properties
+         (1+ index) (+ 2 index) '(face helm-match))))
+    (buffer-string)))
+
 (defun helm-flx-fuzzy-highlight-match (candidate)
   (require 'flx)
   (if (string-match-p " " helm-pattern)
@@ -156,17 +168,28 @@ Return candidates prefixed with basename of `helm-input' first."
            (pair (and (consp candidate) candidate))
            (display (if pair (car pair) candidate))
            (real (cdr pair)))
-      (with-temp-buffer
-        (insert (propertize display 'read-only nil))
-        (goto-char (point-min))
-        (dolist (index (cdr (flx-score
-                             (substring-no-properties display)
-                             helm-pattern helm-flx-cache)))
-          (with-demoted-errors "helm-fx error: %s"
-            (add-text-properties
-             (1+ index) (+ 2 index) '(face helm-match))))
-        (setq display (buffer-string)))
+      (setq display (helm-flx-fuzzy-highligher display helm-pattern))
       (if real (cons display real) display))))
+
+(defun helm-flx-helm-ff-filter-candidate-one-by-one (old-fun &rest args)
+  (let ((candidate (apply old-fun args)))
+    (when (and (consp candidate)
+               (not (string-match-p "/$" helm-input))
+               ;; Don't highlight the [?] <whatever you typed> cand
+               (not (string-match-p "^ " (car candidate))))
+      ;; Horrible hack to split into directory and basename
+      ;; while preserving text-properties
+      (let* ((display (car candidate))
+             (directory-length (length (file-name-directory display)))
+             (directory (substring display 0 directory-length))
+             (basename (substring display directory-length)))
+        ;; Candidate must be modified in-place
+        (setcar candidate
+                (concat directory
+                        (helm-flx-fuzzy-highligher
+                         basename
+                         (helm-basename helm-input))))))
+    candidate))
 
 ;;;###autoload
 (define-minor-mode helm-flx-mode
@@ -184,8 +207,12 @@ Return candidates prefixed with basename of `helm-input' first."
              (setq helm-fuzzy-matching-highlight-fn
                    #'helm-flx-fuzzy-highlight-match)
              (when helm-flx-for-helm-find-files
-               (advice-add 'helm-ff-sort-candidates :override
-                           #'helm-flx-helm-ff-sort-candidates)))
+               (advice-add 'helm-ff-sort-candidates
+                           :override
+                           #'helm-flx-helm-ff-sort-candidates)
+               (advice-add 'helm-ff-filter-candidate-one-by-one
+                           :around
+                           #'helm-flx-helm-ff-filter-candidate-one-by-one)))
 
     (setq helm-fuzzy-sort-fn
           (or helm-flx-old-helm-fuzzy-sort-fn
@@ -195,7 +222,9 @@ Return candidates prefixed with basename of `helm-input' first."
               #'helm-fuzzy-default-highlight-match))
     (when helm-flx-for-helm-find-files
       (advice-remove 'helm-ff-sort-candidates
-                     #'helm-flx-helm-ff-sort-candidates))))
+                     #'helm-flx-helm-ff-sort-candidates)
+      (advice-remove 'helm-ff-filter-candidate-one-by-one
+                     #'helm-flx-helm-ff-filter-candidate-one-by-one))))
 
 (provide 'helm-flx)
 
