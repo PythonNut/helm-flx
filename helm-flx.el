@@ -85,7 +85,6 @@ candidates is greater than this number, only sort the first N (presorted by leng
                                                    helm-flx-cache))
                                    most-negative-fixnum))))
                    (if (or (not helm-flx-limit)
-                           (> helm-flx-limit helm-candidate-number-limit)
                            (< num-cands helm-flx-limit))
                        candidates
                      (let* ((seq (sort candidates
