@@ -71,7 +71,8 @@ candidates is greater than this number, only sort the first N (presorted by leng
 
 (defun helm-flx-sort (candidates pattern display-string-fn &optional score-fn)
   (require 'flx)
-  (let ((num-cands (length candidates)))
+  (let* ((candidates (mapcar #'helm-flx-candidate-string candidates))
+         (num-cands (length candidates)))
     (mapcar #'car
             (sort (mapcar
                    (or (and score-fn
@@ -129,19 +130,20 @@ Return candidates prefixed with basename of `helm-input' first."
                                    most-negative-fixnum))))))))
 
 (defun helm-flx-fuzzy-matching-sort (candidates _source &optional use-real)
-  (if (string= helm-pattern "")
-      candidates
-    (helm-flx-sort candidates
-                   helm-pattern
-                   (if use-real
+  (let ((candidates (mapcar #'helm-flx-candidate-string candidates)))
+    (if (string= helm-pattern "")
+        candidates
+      (helm-flx-sort candidates
+                     helm-pattern
+                     (if use-real
+                         (lambda (cand)
+                           (if (consp cand)
+                               (cdr cand)
+                             cand))
                        (lambda (cand)
                          (if (consp cand)
-                             (cdr cand)
-                           cand))
-                     (lambda (cand)
-                       (if (consp cand)
-                           (car cand)
-                         cand))))))
+                             (car cand)
+                           cand)))))))
 
 (defun helm-flx-candidate-string (candidate)
   (cond
