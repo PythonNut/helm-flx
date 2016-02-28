@@ -103,46 +103,50 @@ candidates is greater than this number, only sort the first N (presorted by leng
                     (> (cdr c1)
                        (cdr c2)))))))
 
-(defun helm-flx-helm-ff-sort-candidates (candidates _source)
+(defun helm-flx-helm-ff-sort-candidates (old-fun candidates source)
   "Sort function for `helm-source-find-files'.
 Return candidates prefixed with basename of `helm-input' first."
   (require 'flx)
   (if (string= helm-input "")
       candidates
-    (helm-flx-sort candidates helm-input
-                   (lambda (cand)
-                     (substring-no-properties
-                      (if (consp cand)
-                          (cdr cand)
-                        cand)))
-                   (lambda (pattern display-string-fn)
+    (if (string-match-p " " helm-pattern)
+        (funcall old-fun candidates source)
+      (helm-flx-sort candidates helm-input
                      (lambda (cand)
-                       (cons cand
-                             (if (string-match-p
-                                  "^\\[\\?\\]"
-                                  (funcall display-string-fn cand))
-                                 most-positive-fixnum
-                               (or (car (flx-score
-                                         (funcall display-string-fn cand)
-                                         pattern
-                                         helm-flx-cache))
-                                   most-negative-fixnum))))))))
+                       (substring-no-properties
+                        (if (consp cand)
+                            (cdr cand)
+                          cand)))
+                     (lambda (pattern display-string-fn)
+                       (lambda (cand)
+                         (cons cand
+                               (if (string-match-p
+                                    "^\\[\\?\\]"
+                                    (funcall display-string-fn cand))
+                                   most-positive-fixnum
+                                 (or (car (flx-score
+                                           (funcall display-string-fn cand)
+                                           pattern
+                                           helm-flx-cache))
+                                     most-negative-fixnum)))))))))
 
-(defun helm-flx-fuzzy-matching-sort (candidates _source &optional use-real)
+(defun helm-flx-fuzzy-matching-sort (candidates source &optional use-real)
   (let ((candidates (mapcar #'helm-flx-candidate-string candidates)))
     (if (string= helm-pattern "")
         candidates
-      (helm-flx-sort candidates
-                     helm-pattern
-                     (if use-real
+      (if (string-match-p " " helm-pattern)
+          (helm-fuzzy-matching-default-sort-fn candidates source use-real)
+        (helm-flx-sort candidates
+                       helm-pattern
+                       (if use-real
+                           (lambda (cand)
+                             (if (consp cand)
+                                 (cdr cand)
+                               cand))
                          (lambda (cand)
                            (if (consp cand)
-                               (cdr cand)
-                             cand))
-                       (lambda (cand)
-                         (if (consp cand)
-                             (car cand)
-                           cand)))))))
+                               (car cand)
+                             cand))))))))
 
 (defun helm-flx-candidate-string (candidate)
   (cond
@@ -209,7 +213,7 @@ Return candidates prefixed with basename of `helm-input' first."
                    #'helm-flx-fuzzy-highlight-match)
              (when helm-flx-for-helm-find-files
                (advice-add 'helm-ff-sort-candidates
-                           :override
+                           :around
                            #'helm-flx-helm-ff-sort-candidates)
                (advice-add 'helm-ff-filter-candidate-one-by-one
                            :around
