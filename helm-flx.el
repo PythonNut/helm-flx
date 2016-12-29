@@ -113,7 +113,7 @@ candidates is greater than this number, only sort the first N (presorted by leng
   "Sort function for `helm-source-find-files'.
 Return candidates prefixed with basename of `helm-input' first."
   (require 'flx)
-  (if (string= helm-input "")
+  (if (string= (file-name-nondirectory helm-input) "")
       candidates
     (if (string-match-p " " helm-pattern)
         (funcall old-fun candidates source)
