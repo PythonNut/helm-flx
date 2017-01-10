@@ -12,6 +12,13 @@ After that, you can enable it by putting the following in your init file:
 (helm-flx-mode +1)
 ```
 
+In addition, there are two important configuration variables:
+
+```emacs
+(setq helm-flx-for-helm-find-files t ;; t by default
+      helm-flx-for-helm-locate t) ;; nil by default
+```
+
 Some History
 ============
 
