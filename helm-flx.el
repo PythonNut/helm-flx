@@ -148,7 +148,7 @@ Return candidates prefixed with basename of `helm-input' first."
     (if (string= helm-pattern "")
         candidates
       (if (string-match-p " " helm-pattern)
-          (helm-fuzzy-matching-default-sort-fn candidates source use-real)
+          (helm-fuzzy-matching-default-sort-fn candidates source)
         (helm-flx-sort candidates
                        helm-pattern
                        (if use-real
