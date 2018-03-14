@@ -37,10 +37,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (with-demoted-errors "Byte-compile: %s"
-    (require 'helm)
-    (require 'flx)))
+(require 'helm)
+(require 'flx)
 
 (defgroup helm-flx nil
   "Sort helm candidates by flx score"
