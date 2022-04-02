@@ -178,10 +178,10 @@ Return candidates prefixed with basename of `helm-input' first."
          (1+ index) (+ 2 index) '(face helm-match))))
     (buffer-string)))
 
-(defun helm-flx-fuzzy-highlight-match (candidate)
+(defun helm-flx-fuzzy-highlight-match (candidate &optional diacritics)
   (require 'flx)
   (if (string-match-p " " helm-pattern)
-      (helm-fuzzy-default-highlight-match candidate)
+      (helm-fuzzy-default-highlight-match candidate diacritics)
     (let* ((candidate (helm-flx-candidate-string candidate))
            (pair (and (consp candidate) candidate))
            (display (if pair (car pair) candidate))
